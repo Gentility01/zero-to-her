@@ -33,6 +33,10 @@ class ProductDeleteView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
 
 
 class OrderListCreateView(mixins.ListCreateAPIView):
+    """
+    this view will allow users to list and create orders. 
+    The queryset is filtered to only include orders for the
+    currently authenticated user."""
     serializer_class = OrderSerializer
     # NOTE: no class-level 'queryset' attribute at all -- get_queryset() replaces
     def get_queryset(self):
