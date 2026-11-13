@@ -55,7 +55,7 @@ class ProductAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Main Informations", {
-            "fields": ("user", "products", "total_price", "is_active")
+            "fields": ("user", "products", "is_active")
         }),
     )
     

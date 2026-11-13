@@ -1,48 +1,53 @@
-from rest_framework import mixins, viewsets
+from rest_framework import viewsets
 
-from products.api.serializers import ProductSerializer
-from products.models import Product, Order
-from products.api.serializers import OrderSerializer 
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from products.api.serializers import (
+    CategoryCreateUpdateSerializer,
+    CategoryDetailSerializer,
+    CategoryListSerializer, 
+    ProductCreateUpdateSerializer, 
+    ProductSerializer
+)
+from products.api.schemas import product_v1_schema
+from products.models import Product, Category
 
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategoryListSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["name", "is_active"]
 
-
-
-class ProductListView(mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer 
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return CategoryDetailSerializer
+        elif self.action in ["create", "update", "partial_update"]:
+            return CategoryCreateUpdateSerializer
+        return super().get_serializer_class()
     
-class ProductDetailView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-class ProductCreateView(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
     
-class ProductUpdateView(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+@product_v1_schema
+class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["name", "categories", "is_active"]
+
+    def get_serializer_class(self):
+        
+        if self.action == "retrieve":
+            return ProductSerializer
+        elif self.action in ["create", "update", "partial_update"]:
+            return ProductCreateUpdateSerializer
+        return super().get_serializer_class()
     
-
-class ProductDeleteView(mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-
-
-class OrderListCreateView(mixins.ListCreateAPIView):
-    """
-    this view will allow users to list and create orders. 
-    The queryset is filtered to only include orders for the
-    currently authenticated user."""
-    serializer_class = OrderSerializer
-    # NOTE: no class-level 'queryset' attribute at all -- get_queryset() replaces
-    def get_queryset(self):
-        # self.request is available here -- this runs FRESH for every request,
-        # correctly scoped to whoever is actually asking.
-        return Order.objects.filter(user=self.request.user)
-
-
-
+    @action(detail=True, methods=["get"], url_path="low-stock")
+    def low_stock(self, request, pk=None):
+        product = self.get_object()
+        if product.stock < 10:
+            return Response({"message": "Low stock alert!"})
+        return Response({"message": "Stock level is sufficient."})

@@ -77,6 +77,9 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.product.name} in Order {self.order.id}"
     
+    def get_status_display(self):
+        ...
+    
 class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='orders')
@@ -88,9 +91,10 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
 
+    @staticmethod
     @transaction.atomic
     def create_order(user, cart_items):
-        order = Order.objects.create(user=user, status='PENDING')
+        order = Order.objects.create(user=user)
         for item in cart_items:
             OrderItem.objects.create(
                     order=order, product=item.product, quantity=item.quantity
