@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "debug_toolbar",
     "rest_framework",
+    "drf_spectacular",
+    "django_filters",
     
     # third paties
     "user",
@@ -140,3 +142,17 @@ INTERNAL_IPS = [
     '127.0.0.1', 
 
 ]
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": (
+        "drf_spectacular.openapi.AutoSchema"
+    )
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Todo API",
+    "DESCRIPTION": "API for the Todo project",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
